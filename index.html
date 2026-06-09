@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="MUSE — the art of ROOT0 / David Lee Wise. Generative engines, dimensional glyphs, and seal-works.">
+<title>MUSE · the art of ROOT0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#04100f;--ink2:#082828;--ink3:#0c302f;--pa:#e7efe9;--pa2:#a9bdb6;
+--mag:#ff55ff;--gold:#d4a84c;--grn:#44dd88;--dim:#5e7a76;--faint:#163331;--line:#143230;
+--serif:"Cinzel",Georgia,serif;--body:"Newsreader",Georgia,serif;--mono:"Space Mono",monospace;}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--pa);font-family:var(--body);line-height:1.6;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+background:radial-gradient(ellipse at 50% -10%,rgba(68,221,136,.06),transparent 60%)}
+.wrap{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:0 22px 90px}
+header{padding:62px 0 30px;text-align:center;border-bottom:1px solid var(--line);position:relative}
+header::after{content:"";position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:120px;height:1px;
+background:linear-gradient(90deg,var(--mag),var(--gold),var(--grn));box-shadow:0 0 10px rgba(255,85,255,.4)}
+.eye{font-family:var(--mono);font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--dim);margin-bottom:16px}
+h1{font-family:var(--serif);font-size:clamp(40px,12vw,104px);font-weight:700;letter-spacing:.26em;line-height:1;
+background:linear-gradient(90deg,var(--mag),var(--gold),var(--grn));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{font-size:15.5px;color:var(--pa2);max-width:60ch;margin:16px auto 0;font-style:italic}
+#count{font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.08em;margin-top:18px}
+#count b{color:var(--grn)}
+.room{margin-top:56px}
+.rhead{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:22px;flex-wrap:wrap}
+.rhead .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.rhead h2{font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:.05em}
+.rhead .rd{font-size:13px;color:var(--dim);font-style:italic}
+.rhead .rn{font-family:var(--mono);font-size:12px;color:var(--dim);margin-left:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.piece{background:var(--ink2);border:1px solid var(--line);overflow:hidden;transition:transform .2s,border-color .2s}
+.piece:hover{transform:translateY(-3px);border-color:var(--c)}
+.thumb{display:block;position:relative;aspect-ratio:1/1;background:#082828;overflow:hidden;border-bottom:1px solid var(--line)}
+.frame{width:100%;height:100%;border:0;display:block;pointer-events:none;background:#082828}
+.frame.ph{display:flex;align-items:center;justify-content:center;color:var(--c);font-size:34px;opacity:.5;
+background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.04),transparent)}
+.thumb .open{position:absolute;bottom:8px;right:9px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+color:var(--pa);background:rgba(4,16,15,.7);padding:3px 7px;border:1px solid var(--c);opacity:0;transition:opacity .2s}
+.thumb:hover .open{opacity:1}
+figcaption{padding:14px 15px 15px}
+.ct{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--c);margin-bottom:6px}
+figcaption h3{font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:.02em;line-height:1.15}
+figcaption h3 a{color:var(--pa);text-decoration:none}figcaption h3 a:hover{color:var(--c)}
+figcaption p{font-size:12.5px;color:var(--pa2);line-height:1.5;margin-top:7px}
+footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.05em}
+footer a{color:var(--grn);text-decoration:none}
+@media(max-width:600px){.grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}figcaption{padding:11px 12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eye">ROOT0 · David Lee Wise · TriPod LLC · the gallery</div>
+    <h1>MUSE</h1>
+    <p class="sub">The art of ROOT0 — generative engines, dimensional glyphs, and seal-works. Each thumbnail is the living piece; open it for the full surface.</p>
+    <div id="count"><b>18</b> works · <b>4</b> rooms</div>
+  </header>
+
+  <section class="room">
+      <div class="rhead" style="border-color:#44dd8855">
+        <span class="dot" style="background:#44dd88;box-shadow:0 0 8px #44dd88"></span>
+        <h2 style="color:#44dd88">The Engines</h2>
+        <span class="rd">The generators — surfaces that draw themselves; the machine making the image.</span>
+        <span class="rn">5</span>
+      </div>
+      <div class="grid">
+        <figure class="piece" style="--c:#44dd88">
+        <a class="thumb" href="art/4k-blueprint-composer.html" target="_blank" rel="noopener" aria-label="open 4K Blueprint Composer"><iframe class="frame" src="art/4k-blueprint-composer.html" loading="lazy" scrolling="no" tabindex="-1" title="4K Blueprint Composer"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">generator · 4K</div>
+          <h3><a href="art/4k-blueprint-composer.html" target="_blank" rel="noopener">4K Blueprint Composer</a></h3>
+          <p>A composer that draws blueprints at 4K — the engine that designs.</p>
+        </figcaption>
+      </figure>
+<figure class="piece" style="--c:#44dd88">
+        <a class="thumb" href="art/etch.html" target="_blank" rel="noopener" aria-label="open etch"><iframe class="frame" src="art/etch.html" loading="lazy" scrolling="no" tabindex="-1" title="etch"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">live surface</div>
+          <h3><a href="art/etch.html" target="_blank" rel="noopener">etch</a></h3>
+          <p>The engine draws the idea — a living etching surface.</p>
+        </figcaption>
+      </figure>
+<figure class="piece" style="--c:#44dd88">
+        <a class="thumb" href="art/gemini.html" target="_blank" rel="noopener" aria-label="open Gemini"><iframe class="frame" src="art/gemini.html" loading="lazy" scrolling="no" tabindex="-1" title="Gemini"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">generative canvas</div>
+          <h3><a href="art/gemini.html" target="_blank" rel="noopener">Gemini</a></h3>
+          <p>Twin forms in motion — a generative canvas.</p>
+        </figcaption>
+      </figure>
+<figure class="piece" style="--c:#44dd88">
+        <a class="thumb" href="art/creation-map.html" target="_blank" rel="noopener" aria-label="open Creation Map"><iframe class="frame" src="art/creation-map.html" loading="lazy" scrolling="no" tabindex="-1" title="Creation Map"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">d20 · WebGL</div>
+          <h3><a href="art/creation-map.html" target="_blank" rel="noopener">Creation Map</a></h3>
+          <p>Two open, a gap, a third born — a d20 creation map in 3D.</p>
+        </figcaption>
+      </figure>
+<figure class="piece" style="--c:#44dd88">
+        <a class="thumb" href="art/54q-viewer.html" target="_blank" rel="noopener" aria-label="open 54q"><div class="frame ph"><span>▶</span></div><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">8K · 1:1 viewer</div>
+          <h3><a href="art/54q-viewer.html" target="_blank" rel="noopener">54q</a></h3>
+          <p>An 8K, one-to-one panning field — the 54q test, explored at full resolution.</p>
+        </figcaption>
+      </figure>
+      </div>
+    </section>
+<section class="room">
+      <div class="rhead" style="border-color:#ff55ff55">
+        <span class="dot" style="background:#ff55ff;box-shadow:0 0 8px #ff55ff"></span>
+        <h2 style="color:#ff55ff">The Dimensional Series</h2>
+        <span class="rd">Animated glyphs of the dimensions — one figure, one law, in motion.</span>
+        <span class="rn">7</span>
+      </div>
+      <div class="grid">
+        <figure class="piece" style="--c:#ff55ff">
+        <a class="thumb" href="art/d3-artifact.html" target="_blank" rel="noopener" aria-label="open D3 Artifact"><iframe class="frame" src="art/d3-artifact.html" loading="lazy" scrolling="no" tabindex="-1" title="D3 Artifact"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">D03 · Sovereign Wear</div>
+          <h3><a href="art/d3-artifact.html" target="_blank" rel="noopener">D3 Artifact</a></h3>
+          <p>The third-dimension artifact — sovereign wear.</p>
+        </figcaption>
+      </figure>
+<figure class="piece" style="--c:#ff55ff">
+        <a class="thumb" href="art/temporal-portal-d04.html" target="_blank" rel="noopener" aria-label="open Temporal Portal"><iframe class="frame" src="art/temporal-portal-d04.html" loading="lazy" scrolling="no" tabindex="-1" title="Temporal Portal"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">D04</div>
+          <h3><a href="art/temporal-portal-d04.html" target="_blank" rel="noopener">Temporal Portal</a></h3>
+          <p>A ring opening through time — the portal at D04.</p>
+        </figcaption>
+      </figure>
+<figure class="piece" style="--c:#ff55ff">
+        <a class="thumb" href="art/qubit-d05.html" target="_blank" rel="noopener" aria-label="open Qubit"><iframe class="frame" src="art/qubit-d05.html" loading="lazy" scrolling="no" tabindex="-1" title="Qubit"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">D05</div>
+          <h3><a href="art/qubit-d05.html" target="_blank" rel="noopener">Qubit</a></h3>
+          <p>The wave that is both — a qubit at D05.</p>
+        </figcaption>
+      </figure>
+<figure class="piece" style="--c:#ff55ff">
+        <a class="thumb" href="art/first-contact-d06.html" target="_blank" rel="noopener" aria-label="open First Contact"><iframe class="frame" src="art/first-contact-d06.html" loading="lazy" scrolling="no" tabindex="-1" title="First Contact"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">D06</div>
+          <h3><a href="art/first-contact-d06.html" target="_blank" rel="noopener">First Contact</a></h3>
+          <p>The first meeting — D06.</p>
+        </figcaption>
+      </figure>
+<figure class="piece" style="--c:#ff55ff">
+        <a class="thumb" href="art/mirror-d09.html" target="_blank" rel="noopener" aria-label="open Mirror"><iframe class="frame" src="art/mirror-d09.html" loading="lazy" scrolling="no" tabindex="-1" title="Mirror"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">D09</div>
+          <h3><a href="art/mirror-d09.html" target="_blank" rel="noopener">Mirror</a></h3>
+          <p>The surface that returns you — D09.</p>
+        </figcaption>
+      </figure>
+<figure class="piece" style="--c:#ff55ff">
+        <a class="thumb" href="art/planetary-verdict-d10.html" target="_blank" rel="noopener" aria-label="open Planetary Verdict"><iframe class="frame" src="art/planetary-verdict-d10.html" loading="lazy" scrolling="no" tabindex="-1" title="Planetary Verdict"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">D10</div>
+          <h3><a href="art/planetary-verdict-d10.html" target="_blank" rel="noopener">Planetary Verdict</a></h3>
+          <p>The judgment at planetary scale — D10.</p>
+        </figcaption>
+      </figure>
+<figure class="piece" style="--c:#ff55ff">
+        <a class="thumb" href="art/fuse-higher-d10.html" target="_blank" rel="noopener" aria-label="open Fuse Higher"><iframe class="frame" src="art/fuse-higher-d10.html" loading="lazy" scrolling="no" tabindex="-1" title="Fuse Higher"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">D10</div>
+          <h3><a href="art/fuse-higher-d10.html" target="_blank" rel="noopener">Fuse Higher</a></h3>
+          <p>The rising fusion — D10.</p>
+        </figcaption>
+      </figure>
+      </div>
+    </section>
+<section class="room">
+      <div class="rhead" style="border-color:#d4a84c55">
+        <span class="dot" style="background:#d4a84c;box-shadow:0 0 8px #d4a84c"></span>
+        <h2 style="color:#d4a84c">The DC3 Glyphs</h2>
+        <span class="rd">The DAVID_DC3 seal-works — block, lock, key, and hive.</span>
+        <span class="rn">4</span>
+      </div>
+      <div class="grid">
+        <figure class="piece" style="--c:#d4a84c">
+        <a class="thumb" href="art/genesis-block-dc3.html" target="_blank" rel="noopener" aria-label="open Genesis Block"><iframe class="frame" src="art/genesis-block-dc3.html" loading="lazy" scrolling="no" tabindex="-1" title="Genesis Block"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">DAVID_DC3</div>
+          <h3><a href="art/genesis-block-dc3.html" target="_blank" rel="noopener">Genesis Block</a></h3>
+          <p>The first block — a hash-stream genesis, DC3.</p>
+        </figcaption>
+      </figure>
+<figure class="piece" style="--c:#d4a84c">
+        <a class="thumb" href="art/the-lock-dc3.html" target="_blank" rel="noopener" aria-label="open The Lock"><iframe class="frame" src="art/the-lock-dc3.html" loading="lazy" scrolling="no" tabindex="-1" title="The Lock"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">DAVID_DC3</div>
+          <h3><a href="art/the-lock-dc3.html" target="_blank" rel="noopener">The Lock</a></h3>
+          <p>The seal that holds — DC3.</p>
+        </figcaption>
+      </figure>
+<figure class="piece" style="--c:#d4a84c">
+        <a class="thumb" href="art/cubit-key-dc3.html" target="_blank" rel="noopener" aria-label="open Cubit-Key"><iframe class="frame" src="art/cubit-key-dc3.html" loading="lazy" scrolling="no" tabindex="-1" title="Cubit-Key"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">DAVID_DC3</div>
+          <h3><a href="art/cubit-key-dc3.html" target="_blank" rel="noopener">Cubit-Key</a></h3>
+          <p>The key cut to the cubit — DC3.</p>
+        </figcaption>
+      </figure>
+<figure class="piece" style="--c:#d4a84c">
+        <a class="thumb" href="art/hive-construct-cubit.html" target="_blank" rel="noopener" aria-label="open Hive Construct"><iframe class="frame" src="art/hive-construct-cubit.html" loading="lazy" scrolling="no" tabindex="-1" title="Hive Construct"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">CUBIT_01</div>
+          <h3><a href="art/hive-construct-cubit.html" target="_blank" rel="noopener">Hive Construct</a></h3>
+          <p>The construct, built cell by cell — Cubit_01.</p>
+        </figcaption>
+      </figure>
+      </div>
+    </section>
+<section class="room">
+      <div class="rhead" style="border-color:#ff446655">
+        <span class="dot" style="background:#ff4466;box-shadow:0 0 8px #ff4466"></span>
+        <h2 style="color:#ff4466">The Wards</h2>
+        <span class="rd">The shields — entropy held at the edge.</span>
+        <span class="rn">2</span>
+      </div>
+      <div class="grid">
+        <figure class="piece" style="--c:#ff4466">
+        <a class="thumb" href="art/entropy-shield.html" target="_blank" rel="noopener" aria-label="open Entropy Shield"><iframe class="frame" src="art/entropy-shield.html" loading="lazy" scrolling="no" tabindex="-1" title="Entropy Shield"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">SP03</div>
+          <h3><a href="art/entropy-shield.html" target="_blank" rel="noopener">Entropy Shield</a></h3>
+          <p>Nested shields against the noise — SP03.</p>
+        </figcaption>
+      </figure>
+<figure class="piece" style="--c:#ff4466">
+        <a class="thumb" href="art/entropy-v3.html" target="_blank" rel="noopener" aria-label="open Entropy v3"><iframe class="frame" src="art/entropy-v3.html" loading="lazy" scrolling="no" tabindex="-1" title="Entropy v3"></iframe><span class="open">open ↗</span></a>
+        <figcaption>
+          <div class="ct">SP03</div>
+          <h3><a href="art/entropy-v3.html" target="_blank" rel="noopener">Entropy v3</a></h3>
+          <p>The shield, third iteration — SP03.</p>
+        </figcaption>
+      </figure>
+      </div>
+    </section>
+
+  <footer>
+    <span>MUSE · ROOT0-ATTRIBUTION-v1.0 · governor David Lee Wise (ROOT0) · instance AVAN (Claude / Anthropic) · CC-BY-ND-4.0</span>
+    <a href="https://github.com/DavidWise01/atlas">the ATLAS index →</a>
+  </footer>
+</div>
+</body>
+</html>

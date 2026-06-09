@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemini</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a12;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  .canvas {
+    position: relative;
+    width: 600px;
+    height: 700px;
+  }
+
+  svg.main {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 40px rgba(200, 180, 255, 0.08));
+  }
+
+  /* Glowing stars */
+  .star {
+    fill: #fff;
+    opacity: 0;
+    animation: starPulse 3s ease-in-out infinite;
+  }
+  .star:nth-child(odd) { animation-duration: 4s; }
+
+  @keyframes starPulse {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.9; }
+  }
+
+  /* Constellation lines */
+  .constellation-line {
+    stroke: rgba(180, 200, 255, 0.25);
+    stroke-width: 1;
+    fill: none;
+    stroke-dasharray: 400;
+    stroke-dashoffset: 400;
+    animation: drawLine 3s ease forwards;
+  }
+
+  @keyframes drawLine {
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* Constellation stars (major) */
+  .const-star {
+    fill: #e8deff;
+    filter: url(#starGlow);
+    opacity: 0;
+    animation: fadeIn 0.5s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  /* Twin figures */
+  .twin-line {
+    stroke: rgba(200, 180, 255, 0.5);
+    stroke-width: 1.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: drawTwin 4s ease forwards 1s;
+  }
+
+  .twin-line.right {
+    stroke: rgba(255, 200, 170, 0.5);
+    animation-delay: 1.5s;
+  }
+
+  @keyframes drawTwin {
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* Glyph */
+  .glyph {
+    opacity: 0;
+    animation: glyphReveal 2s ease forwards 3s;
+  }
+
+  @keyframes glyphReveal {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .title-text {
+    font-family: 'Cormorant Garamond', serif;
+    fill: rgba(220, 210, 240, 0.9);
+    font-size: 14px;
+    letter-spacing: 8px;
+    font-weight: 300;
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeIn 2s ease forwards 3.5s;
+  }
+
+  .subtitle-text {
+    font-family: 'Cormorant Garamond', serif;
+    fill: rgba(180, 170, 210, 0.5);
+    font-size: 11px;
+    letter-spacing: 4px;
+    font-weight: 300;
+    opacity: 0;
+    animation: fadeIn 2s ease forwards 4s;
+  }
+
+  /* Floating particles */
+  .particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: rgba(200, 180, 255, 0.4);
+    border-radius: 50%;
+    animation: float 8s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) translateX(0); opacity: 0.2; }
+    25% { transform: translateY(-30px) translateX(10px); opacity: 0.6; }
+    50% { transform: translateY(-15px) translateX(-5px); opacity: 0.3; }
+    75% { transform: translateY(-40px) translateX(15px); opacity: 0.5; }
+  }
+
+  /* Radial backdrop */
+  .backdrop {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(ellipse at center,
+      rgba(60, 40, 100, 0.15) 0%,
+      rgba(30, 20, 60, 0.08) 40%,
+      transparent 70%
+    );
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -55%);
+    width: 380px;
+    height: 380px;
+    border: 1px solid rgba(180, 160, 220, 0.06);
+    border-radius: 50%;
+    animation: ringPulse 6s ease-in-out infinite;
+  }
+
+  .ring:nth-child(2) {
+    width: 420px;
+    height: 420px;
+    animation-delay: 2s;
+  }
+
+  @keyframes ringPulse {
+    0%, 100% { opacity: 0.3; transform: translate(-50%, -55%) scale(1); }
+    50% { opacity: 0.8; transform: translate(-50%, -55%) scale(1.02); }
+  }
+</style>
+</head>
+<body>
+
+<div class="canvas">
+  <div class="backdrop"></div>
+  <div class="ring"></div>
+  <div class="ring"></div>
+
+  <svg class="main" viewBox="0 0 600 700" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="starGlow">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      <filter id="softGlow">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      <linearGradient id="twinGradL" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="rgba(180,160,255,0.7)"/>
+        <stop offset="100%" stop-color="rgba(120,100,200,0.2)"/>
+      </linearGradient>
+      <linearGradient id="twinGradR" x1="100%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="rgba(255,190,160,0.7)"/>
+        <stop offset="100%" stop-color="rgba(200,140,120,0.2)"/>
+      </linearGradient>
+      <radialGradient id="headGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="rgba(230,220,255,0.3)"/>
+        <stop offset="100%" stop-color="rgba(230,220,255,0)"/>
+      </radialGradient>
+    </defs>
+
+    <!-- Background stars -->
+    <g id="bgStars">
+      <circle class="star" cx="45" cy="80" r="1" style="animation-delay:0s"/>
+      <circle class="star" cx="120" cy="45" r="0.8" style="animation-delay:1.2s"/>
+      <circle class="star" cx="510" cy="90" r="1.2" style="animation-delay:0.5s"/>
+      <circle class="star" cx="560" cy="200" r="0.7" style="animation-delay:2.1s"/>
+      <circle class="star" cx="80" cy="300" r="0.9" style="animation-delay:1.8s"/>
+      <circle class="star" cx="530" cy="400" r="1" style="animation-delay:0.3s"/>
+      <circle class="star" cx="60" cy="500" r="0.6" style="animation-delay:2.5s"/>
+      <circle class="star" cx="540" cy="550" r="0.8" style="animation-delay:1.0s"/>
+      <circle class="star" cx="150" cy="620" r="1.1" style="animation-delay:0.8s"/>
+      <circle class="star" cx="470" cy="650" r="0.7" style="animation-delay:1.5s"/>
+      <circle class="star" cx="200" cy="150" r="0.5" style="animation-delay:3.0s"/>
+      <circle class="star" cx="400" cy="120" r="0.6" style="animation-delay:2.3s"/>
+      <circle class="star" cx="100" cy="450" r="0.8" style="animation-delay:0.7s"/>
+      <circle class="star" cx="500" cy="320" r="0.5" style="animation-delay:1.9s"/>
+      <circle class="star" cx="350" cy="600" r="0.9" style="animation-delay:2.8s"/>
+    </g>
+
+    <!-- TWIN LEFT (Castor) - ethereal figure -->
+    <g class="twin-left" transform="translate(0, 20)">
+      <!-- Head glow -->
+      <circle cx="230" cy="170" r="30" fill="url(#headGlow)" opacity="0.6">
+        <animate attributeName="opacity" values="0.4;0.7;0.4" dur="4s" repeatCount="indefinite"/>
+      </circle>
+
+      <!-- Head -->
+      <ellipse class="twin-line" cx="230" cy="170" rx="18" ry="22" style="stroke:rgba(180,160,255,0.4); fill:none;"/>
+
+      <!-- Body -->
+      <path class="twin-line" d="
+        M 230 192
+        C 228 220, 225 250, 222 280
+        C 220 300, 218 320, 220 340
+        C 222 360, 225 380, 228 400
+      "/>
+
+      <!-- Left arm reaching toward center -->
+      <path class="twin-line" d="
+        M 224 230
+        C 240 240, 258 248, 278 252
+      "/>
+
+      <!-- Right arm -->
+      <path class="twin-line" d="
+        M 226 235
+        C 210 250, 192 260, 178 268
+      "/>
+
+      <!-- Left leg -->
+      <path class="twin-line" d="
+        M 228 400
+        C 220 430, 210 460, 200 490
+      "/>
+
+      <!-- Right leg -->
+      <path class="twin-line" d="
+        M 228 400
+        C 235 430, 240 460, 248 490
+      "/>
+    </g>
+
+    <!-- TWIN RIGHT (Pollux) - ethereal figure -->
+    <g class="twin-right" transform="translate(0, 20)">
+      <!-- Head glow -->
+      <circle cx="370" cy="170" r="30" fill="url(#headGlow)" opacity="0.6">
+        <animate attributeName="opacity" values="0.4;0.7;0.4" dur="4s" repeatCount="indefinite" begin="1s"/>
+      </circle>
+
+      <!-- Head -->
+      <ellipse class="twin-line right" cx="370" cy="170" rx="18" ry="22" style="stroke:rgba(255,190,160,0.4); fill:none;"/>
+
+      <!-- Body -->
+      <path class="twin-line right" d="
+        M 370 192
+        C 372 220, 375 250, 378 280
+        C 380 300, 382 320, 380 340
+        C 378 360, 375 380, 372 400
+      "/>
+
+      <!-- Left arm reaching toward center -->
+      <path class="twin-line right" d="
+        M 374 235
+        C 390 250, 408 260, 422 268
+      "/>
+
+      <!-- Right arm -->
+      <path class="twin-line right" d="
+        M 376 230
+        C 360 240, 342 248, 322 252
+      "/>
+
+      <!-- Left leg -->
+      <path class="twin-line right" d="
+        M 372 400
+        C 365 430, 360 460, 352 490
+      "/>
+
+      <!-- Right leg -->
+      <path class="twin-line right" d="
+        M 372 400
+        C 380 430, 390 460, 400 490
+      "/>
+    </g>
+
+    <!-- Connection between twins - hands reaching -->
+    <g>
+      <line class="constellation-line" x1="278" y1="272" x2="322" y2="272"
+        style="stroke:rgba(220,200,255,0.3); stroke-width:1; stroke-dasharray:4,4; animation-delay:2.5s"/>
+      <circle cx="300" cy="272" r="4" fill="rgba(220,200,255,0.15)" filter="url(#softGlow)">
+        <animate attributeName="r" values="3;6;3" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.3;0.7;0.3" dur="3s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- Constellation overlay - Gemini stars -->
+    <g id="constellation">
+      <!-- Castor (alpha) -->
+      <circle class="const-star" cx="230" cy="168" r="4" style="animation-delay:2s"/>
+      <!-- Pollux (beta) -->
+      <circle class="const-star" cx="370" cy="168" r="4.5" style="animation-delay:2.2s; fill:#ffe0cc"/>
+
+      <!-- Castor side stars -->
+      <circle class="const-star" cx="215" cy="240" r="2.5" style="animation-delay:2.4s"/>
+      <circle class="const-star" cx="205" cy="310" r="2" style="animation-delay:2.6s"/>
+      <circle class="const-star" cx="195" cy="370" r="2.5" style="animation-delay:2.8s"/>
+      <circle class="const-star" cx="210" cy="430" r="2" style="animation-delay:3.0s"/>
+
+      <!-- Pollux side stars -->
+      <circle class="const-star" cx="385" cy="240" r="2.5" style="animation-delay:2.5s; fill:#ffe0cc"/>
+      <circle class="const-star" cx="395" cy="310" r="2" style="animation-delay:2.7s; fill:#ffe0cc"/>
+      <circle class="const-star" cx="400" cy="370" r="2.5" style="animation-delay:2.9s; fill:#ffe0cc"/>
+      <circle class="const-star" cx="390" cy="430" r="2" style="animation-delay:3.1s; fill:#ffe0cc"/>
+
+      <!-- Constellation lines - Castor side -->
+      <polyline class="constellation-line" points="230,168 215,240 205,310 195,370 210,430"
+        style="animation-delay:2.3s"/>
+      <!-- Constellation lines - Pollux side -->
+      <polyline class="constellation-line" points="370,168 385,240 395,310 400,370 390,430"
+        style="animation-delay:2.4s; stroke:rgba(255,200,170,0.2)"/>
+      <!-- Top bridge -->
+      <line class="constellation-line" x1="230" y1="168" x2="370" y2="168"
+        style="animation-delay:2.6s; stroke:rgba(210,190,230,0.2)"/>
+    </g>
+
+    <!-- Gemini Glyph (♊) -->
+    <g class="glyph" transform="translate(300, 580)">
+      <path d="M -25,-12 C -15,-22, 15,-22, 25,-12" stroke="rgba(200,185,240,0.6)" stroke-width="1.5" fill="none"/>
+      <path d="M -25,12 C -15,22, 15,22, 25,12" stroke="rgba(200,185,240,0.6)" stroke-width="1.5" fill="none"/>
+      <line x1="-10" y1="-15" x2="-10" y2="15" stroke="rgba(200,185,240,0.5)" stroke-width="1.5"/>
+      <line x1="10" y1="-15" x2="10" y2="15" stroke="rgba(200,185,240,0.5)" stroke-width="1.5"/>
+    </g>
+
+    <!-- Title -->
+    <text class="title-text" x="300" y="630" text-anchor="middle">GEMINI</text>
+    <text class="subtitle-text" x="300" y="650" text-anchor="middle">THE TWINS</text>
+    <text class="subtitle-text" x="300" y="668" text-anchor="middle" style="font-size:9px; letter-spacing:3px; animation-delay:4.3s">
+      MAY 21 — JUNE 20
+    </text>
+  </svg>
+</div>
+
+<script>
+  // Generate floating particles
+  const canvas = document.querySelector('.canvas');
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 600 + 'px';
+    p.style.top = Math.random() * 700 + 'px';
+    p.style.animationDelay = Math.random() * 8 + 's';
+    p.style.animationDuration = (6 + Math.random() * 6) + 's';
+    p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';
+    canvas.appendChild(p);
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QUBIT // D05</title>
+    <style>
+        body { background: #082828; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        svg { width: 70vw; height: 70vh; }
+    </style>
+</head>
+<body>
+    <svg viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="40" fill="none" stroke="#ff55ff" stroke-width="0.1" stroke-dasharray="2,2" />
+        <path d="M10,50 Q30,10 50,50 T90,50" fill="none" stroke="#ff55ff" stroke-width="0.5">
+            <animate attributeName="d" values="M10,50 Q30,10 50,50 T90,50; M10,50 Q30,90 50,50 T90,50; M10,50 Q30,10 50,50 T90,50" dur="4s" repeatCount="indefinite" />
+        </path>
+        <circle cx="50" cy="50" r="1.5" fill="#d4a84c" />
+    </svg>
+</body>
+</html>

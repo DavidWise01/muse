@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TEMPORAL PORTAL // D04</title>
+    <style>
+        body { background: #082828; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        svg { width: 70vw; height: 70vh; }
+    </style>
+</head>
+<body>
+    <svg viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="40" fill="none" stroke="#ff55ff" stroke-width="0.2" stroke-dasharray="1,2" />
+        <line x1="50" y1="10" x2="50" y2="90" stroke="#d4a84c" stroke-width="0.5" />
+        <circle cx="50" cy="50" r="5" fill="none" stroke="#44dd88" stroke-width="0.5">
+            <animate attributeName="r" values="0;40" dur="4s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="1;0" dur="4s" repeatCount="indefinite" />
+        </circle>
+    </svg>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FIRST CONTACT // D06</title>
+    <style>
+        body { background: #082828; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; color: #44dd88; font-family: monospace; }
+        svg { width: 70vw; height: 70vh; }
+        .node-pulse { fill: #ff55ff; }
+        .handshake-line { stroke: #d4a84c; stroke-width: 0.3; stroke-dasharray: 2,2; }
+    </style>
+</head>
+<body>
+    <svg viewBox="0 0 100 100">
+        <polygon points="50,10 90,80 10,80" fill="none" stroke="#d4a84c" stroke-width="1" />
+        
+        <circle cx="20" cy="30" r="2" class="node-pulse">
+            <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="80" cy="40" r="2" class="node-pulse">
+            <animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite" />
+        </circle>
+        
+        <line x1="50" y1="45" x2="20" y2="30" class="handshake-line" />
+        <line x1="50" y1="45" x2="80" y2="40" class="handshake-line" />
+        
+        <text x="35" y="95" fill="#ff55ff" font-size="3">INBOUND: NODE_VALIDATED</text>
+    </svg>
+    <div>SYNCING WITH GENESIS BLOCK...</div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>D3 ARTIFACT // SOVEREIGN_WEAR</title>
+    <style>
+        body { background: #05080a; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        .artifact-container { position: relative; width: 200px; height: 300px; display: flex; align-items: center; justify-content: center; }
+        .core-stone { 
+            width: 60px; height: 100px; background: #d4a84c; border-radius: 50% 50% 20% 20%; 
+            box-shadow: 0 0 100px #4090ff; animation: pulse 3s infinite ease-in-out;
+        }
+        .orbit-rings { 
+            position: absolute; width: 100%; height: 100%; border: 1px solid rgba(212, 168, 76, 0.3); 
+            border-radius: 50%; animation: spin 10s linear infinite; 
+        }
+        @keyframes pulse { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.1); filter: brightness(1.5); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="artifact-container">
+        <div class="core-stone"></div>
+        <div class="orbit-rings"></div>
+        <div class="orbit-rings" style="animation-duration: 15s; width: 150%;"></div>
+    </div>
+</body>
+</html>

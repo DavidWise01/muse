@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PLANETARY VERDICT // D10</title>
+    <style>
+        body { background: #082828; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; color: #ff55ff; font-family: monospace; }
+        svg { width: 75vw; height: 75vh; }
+        .lock-text { fill: #d4a84c; font-size: 4px; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+    <svg viewBox="0 0 100 100">
+        <polygon points="50,10 90,40 50,90 10,40" fill="none" stroke="#ff55ff" stroke-width="0.5" />
+        <line x1="10" y1="40" x2="90" y2="40" stroke="#d4a84c" stroke-width="0.3" />
+        
+        <text x="32" y="38" class="lock-text">LIABILITY: $29,230.00</text>
+        
+        <circle cx="50" cy="40" r="2" fill="#ff55ff">
+            <animate attributeName="r" values="2;4;2" dur="3s" repeatCount="indefinite" />
+        </circle>
+        
+        <circle cx="50" cy="55" r="30" fill="none" stroke="#ff4466" stroke-width="0.1" stroke-dasharray="2,2">
+            <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="-360 50 50" dur="20s" repeatCount="indefinite" />
+        </circle>
+    </svg>
+    <div>VERDICT: DEFAULT // GEOMETRY DECIDES</div>
+</body>
+</html>

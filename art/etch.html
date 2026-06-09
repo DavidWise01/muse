@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>etch · the engine draws the idea</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,400;1,400&display=swap');
+
+  :root{
+    --void:#000;
+    --bone:#e8e6df;
+    --purple-core:#2a0e5c;
+    --purple-glow:#7c3aff;
+    --dim:#444;
+    --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{
+    background:var(--void);
+    color:var(--bone);
+    font-family:var(--mono);
+    min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;
+    overflow:hidden;
+  }
+  .frame{
+    display:flex;flex-direction:column;align-items:center;gap:18px;
+    width:100%;max-width:720px;
+  }
+  .title{
+    font-family:var(--serif);font-style:italic;font-weight:400;
+    font-size:22px;color:var(--bone);letter-spacing:.02em;
+    opacity:.7;
+  }
+  .title em{color:var(--purple-glow);font-style:normal;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;margin-left:6px}
+
+  .canvas-wrap{
+    position:relative;
+    width:min(720px, 92vw);
+    aspect-ratio:1;
+  }
+  canvas{
+    display:block;width:100%;height:100%;
+    background:var(--void);
+    /* faint inner vignette so the void has depth */
+    box-shadow: inset 0 0 80px rgba(124,58,255,0.06);
+  }
+
+  .row{
+    display:flex;gap:0;width:min(720px,92vw);
+    border:1px solid var(--dim);
+  }
+  #idea{
+    flex:1;
+    background:transparent;
+    color:var(--bone);
+    border:none;
+    padding:14px 16px;
+    font-family:var(--mono);
+    font-size:14px;
+    letter-spacing:.04em;
+    outline:none;
+    caret-color:var(--purple-glow);
+  }
+  #idea::placeholder{color:#555;font-style:italic;font-family:var(--serif);font-size:15px}
+  #go{
+    background:var(--purple-core);
+    color:var(--bone);
+    border:none;
+    border-left:1px solid var(--dim);
+    padding:14px 22px;
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:background .15s, color .15s;
+  }
+  #go:hover{background:var(--purple-glow);color:#0a0214}
+  #go:disabled{background:transparent;color:#555;cursor:not-allowed}
+
+  .status{
+    font-size:10px;color:#666;letter-spacing:.16em;text-transform:uppercase;
+    font-variant-numeric:tabular-nums;
+    height:14px; /* reserve space so layout doesn't jump */
+    display:flex;gap:14px;align-items:center;
+  }
+  .status .pulse{
+    display:inline-block;width:6px;height:6px;border-radius:50%;
+    background:var(--purple-glow);
+    box-shadow:0 0 8px var(--purple-glow);
+    animation:pulse 1.2s ease-in-out infinite;
+  }
+  .status .pulse.off{animation:none;background:#333;box-shadow:none}
+  @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+
+  .hint{
+    font-family:var(--serif);font-style:italic;color:#555;font-size:12px;
+    text-align:center;max-width:600px;line-height:1.5;
+  }
+  .hint code{font-family:var(--mono);font-style:normal;color:var(--purple-glow);font-size:11px;background:rgba(124,58,255,0.06);padding:1px 5px}
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="title">etch <em>one continuous line</em></div>
+
+  <div class="canvas-wrap">
+    <canvas id="cvs" width="1080" height="1080"></canvas>
+  </div>
+
+  <div class="row">
+    <input id="idea" type="text" placeholder="type an idea — house, fish, spiral, infinity, gear…" autocomplete="off" spellcheck="false">
+    <button id="go">draw</button>
+  </div>
+
+  <div class="status">
+    <span class="pulse off" id="pulse"></span>
+    <span id="statusTxt">awaiting idea</span>
+  </div>
+
+  <div class="hint">
+    try: <code>house</code> <code>fish</code> <code>tree</code> <code>star</code> <code>heart</code> <code>spiral</code> <code>wave</code> <code>mountain</code> <code>infinity</code> <code>key</code> <code>eye</code> <code>arrow</code> <code>flower</code> <code>gear</code> <code>lightning</code> <code>sun</code> <code>moon</code> <code>boat</code> <code>cube</code> <code>web</code>
+    — anything else makes a deterministic squiggle from the word's bytes
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   ETCH · single continuous line, no lift, ever
+   - Black void canvas
+   - Two passes per segment: dark purple under, bone-white over
+     → white line with a purple core/halo
+   - Local interpreter — keyword → path generator
+   - Unknown words → seeded deterministic squiggle
+   - Animated draw at ~80 segments/sec so you watch it form
+   ═══════════════════════════════════════════════════════════════════ */
+
+const cvs = document.getElementById('cvs');
+const ctx = cvs.getContext('2d');
+const W = cvs.width, H = cvs.height;
+const CX = W/2, CY = H/2;
+
+// Drawing constants
+const PURPLE_CORE = '#2a0e5c';
+const PURPLE_RIM  = '#4a1f9e';   // slightly brighter outer halo
+const BONE        = '#e8e6df';
+const STROKE_OUTER = 14;          // purple halo width (in canvas units, scales with W=1080)
+const STROKE_INNER = 4;           // bone centerline width
+
+function clearVoid(){
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0,0,W,H);
+}
+
+/* ─── path generators ────────────────────────────────────────────────
+   Each generator returns an array of [x,y] points. The line MUST start
+   and end as one continuous path — every shape is traced as a single
+   stroke. For composite shapes (house = walls + roof + door), we route
+   the line through every sub-shape without lifting, accepting visible
+   "travel" segments as part of the etch-a-sketch aesthetic.
+   ─────────────────────────────────────────────────────────────────── */
+
+const R = Math.min(W,H) * 0.36;  // base radius for most shapes
+
+function gen_house(){
+  const pts = [];
+  const x0 = CX - R*0.7, x1 = CX + R*0.7;
+  const y0 = CY + R*0.6, y1 = CY - R*0.1;       // walls
+  const peak = CY - R*0.65;
+
+  // Start bottom-left, walk perimeter as one stroke
+  pts.push([x0, y0]);                           // start bottom-left
+  // door — go up, across the door top, back down to floor (no lift)
+  const dxL = CX - R*0.18, dxR = CX + R*0.18, dyT = CY + R*0.15;
+  pts.push([dxL, y0]);
+  pts.push([dxL, dyT]);
+  pts.push([dxR, dyT]);
+  pts.push([dxR, y0]);
+  pts.push([x1, y0]);                           // continue floor to bottom-right
+  pts.push([x1, y1]);                           // up right wall
+  pts.push([CX, peak]);                         // up to roof peak
+  pts.push([x0, y1]);                           // down to top-left
+  pts.push([x0, y0]);                           // close
+  return pts;
+}
+
+function gen_fish(){
+  const pts = [];
+  const N = 220;
+  // body — figure-of-eight-ish fish shape, one closed curve
+  for (let i=0; i<=N; i++){
+    const t = i/N * Math.PI*2;
+    const x = CX + Math.sin(t) * R * 0.85;
+    const y = CY + Math.sin(2*t) * R * 0.32;
+    pts.push([x, y]);
+  }
+  // tail — extend last point into a triangle without lifting
+  const tx = CX + R*0.85, ty = CY;
+  pts.push([tx + R*0.3, ty - R*0.25]);
+  pts.push([tx + R*0.3, ty + R*0.25]);
+  pts.push([tx, ty]);
+  // eye — tiny loop on the head side, traveled to as continuous line
+  const ex = CX - R*0.55, ey = CY - R*0.05;
+  pts.push([ex, ey]);
+  for (let i=0; i<=40; i++){
+    const t = i/40 * Math.PI*2;
+    pts.push([ex + Math.cos(t)*R*0.05, ey + Math.sin(t)*R*0.05]);
+  }
+  return pts;
+}
+
+function gen_tree(){
+  const pts = [];
+  // trunk up the middle
+  const tx = CX, ty0 = CY + R*0.7, ty1 = CY - R*0.1;
+  pts.push([tx - R*0.06, ty0]);
+  pts.push([tx - R*0.06, ty1]);
+  // spiral up into the foliage
+  const turns = 4, segPer = 60;
+  for (let i=0; i<=turns*segPer; i++){
+    const t = i/segPer;
+    const r = R*0.55 * (1 - t/turns*0.4);
+    const ang = t * Math.PI*2 - Math.PI/2;
+    pts.push([CX + Math.cos(ang)*r, (ty1 - R*0.4) + Math.sin(ang)*r]);
+  }
+  // back down trunk other side
+  pts.push([tx + R*0.06, ty1]);
+  pts.push([tx + R*0.06, ty0]);
+  pts.push([tx - R*0.06, ty0]);
+  return pts;
+}
+
+function gen_star(){
+  // unicursal 5-point star — true single line, classic etch-a-sketch
+  const pts = [];
+  const N = 5;
+  for (let i=0; i<=N; i++){
+    const ang = -Math.PI/2 + (i * 2 * Math.PI*2 / N);
+    pts.push([CX + Math.cos(ang)*R, CY + Math.sin(ang)*R]);
+  }
+  return pts;
+}
+
+function gen_heart(){
+  const pts = [];
+  const N = 240;
+  for (let i=0; i<=N; i++){
+    const t = i/N * Math.PI*2;
+    // classic heart parametric, scaled to fit
+    const x = 16 * Math.pow(Math.sin(t),3);
+    const y = -(13*Math.cos(t) - 5*Math.cos(2*t) - 2*Math.cos(3*t) - Math.cos(4*t));
+    pts.push([CX + x*R/18, CY + y*R/18]);
+  }
+  return pts;
+}
+
+function gen_spiral(){
+  const pts = [];
+  const turns = 6, segPer = 80;
+  for (let i=0; i<=turns*segPer; i++){
+    const t = i/segPer;
+    const r = R * (t/turns);
+    const ang = t * Math.PI*2;
+    pts.push([CX + Math.cos(ang)*r, CY + Math.sin(ang)*r]);
+  }
+  return pts;
+}
+
+function gen_wave(){
+  const pts = [];
+  const N = 400;
+  for (let i=0; i<=N; i++){
+    const t = i/N;
+    const x = (t - 0.5) * R*2;
+    const y = Math.sin(t * Math.PI * 6) * R * 0.4;
+    pts.push([CX + x, CY + y]);
+  }
+  return pts;
+}
+
+function gen_mountain(){
+  const pts = [];
+  // jagged ridge across the canvas, single line
+  pts.push([CX - R, CY + R*0.6]);
+  const peaks = 6;
+  const peakHeights = [0.4, 0.85, 0.55, 0.95, 0.5, 0.7];
+  for (let i=0; i<peaks; i++){
+    const x = CX - R + (i + 0.5) * (R*2 / peaks);
+    pts.push([x, CY + R*0.6 - R*peakHeights[i]]);
+    pts.push([x + (R*2/peaks)*0.3, CY + R*0.4]);
+  }
+  pts.push([CX + R, CY + R*0.6]);
+  // ground line back to start
+  pts.push([CX - R, CY + R*0.6]);
+  return pts;
+}
+
+function gen_infinity(){
+  const pts = [];
+  const N = 300;
+  for (let i=0; i<=N; i++){
+    const t = i/N * Math.PI*2;
+    // lemniscate of Bernoulli
+    const denom = 1 + Math.sin(t)*Math.sin(t);
+    pts.push([
+      CX + (R * Math.cos(t)) / denom,
+      CY + (R * Math.sin(t) * Math.cos(t)) / denom
+    ]);
+  }
+  return pts;
+}
+
+function gen_key(){
+  const pts = [];
+  // bow (round head) + shaft + teeth, all one stroke
+  const bowR = R*0.35;
+  const bowCx = CX - R*0.55;
+  // start at right of bow, trace bow circle
+  for (let i=0; i<=80; i++){
+    const t = i/80 * Math.PI*2;
+    pts.push([bowCx + Math.cos(t)*bowR, CY + Math.sin(t)*bowR]);
+  }
+  // shaft to the right
+  pts.push([bowCx + bowR, CY - R*0.06]);
+  pts.push([CX + R*0.7, CY - R*0.06]);
+  // teeth — two notches on the underside
+  pts.push([CX + R*0.7, CY + R*0.06]);
+  pts.push([CX + R*0.5, CY + R*0.06]);
+  pts.push([CX + R*0.5, CY + R*0.18]);
+  pts.push([CX + R*0.35, CY + R*0.18]);
+  pts.push([CX + R*0.35, CY + R*0.06]);
+  pts.push([CX + R*0.15, CY + R*0.06]);
+  pts.push([CX + R*0.15, CY + R*0.14]);
+  pts.push([CX, CY + R*0.14]);
+  pts.push([CX, CY + R*0.06]);
+  pts.push([bowCx + bowR, CY + R*0.06]);
+  return pts;
+}
+
+function gen_eye(){
+  const pts = [];
+  // upper lid
+  for (let i=0; i<=60; i++){
+    const t = i/60;
+    const x = CX - R + t*R*2;
+    const y = CY - Math.sin(t*Math.PI) * R*0.5;
+    pts.push([x, y]);
+  }
+  // lower lid back
+  for (let i=0; i<=60; i++){
+    const t = i/60;
+    const x = CX + R - t*R*2;
+    const y = CY + Math.sin(t*Math.PI) * R*0.5;
+    pts.push([x, y]);
+  }
+  // travel inward to draw iris (continuous)
+  pts.push([CX - R*0.3, CY]);
+  for (let i=0; i<=80; i++){
+    const t = i/80 * Math.PI*2;
+    pts.push([CX + Math.cos(t)*R*0.3, CY + Math.sin(t)*R*0.3]);
+  }
+  // pupil
+  for (let i=0; i<=40; i++){
+    const t = i/40 * Math.PI*2;
+    pts.push([CX + Math.cos(t)*R*0.1, CY + Math.sin(t)*R*0.1]);
+  }
+  return pts;
+}
+
+function gen_arrow(){
+  const pts = [];
+  // shaft
+  pts.push([CX - R, CY]);
+  pts.push([CX + R*0.6, CY]);
+  // arrowhead — up, back to tip, down, back to shaft
+  pts.push([CX + R*0.3, CY - R*0.3]);
+  pts.push([CX + R, CY]);
+  pts.push([CX + R*0.3, CY + R*0.3]);
+  pts.push([CX + R*0.6, CY]);
+  // fletching at the back
+  pts.push([CX - R, CY]);
+  pts.push([CX - R*1.15, CY - R*0.15]);
+  pts.push([CX - R*0.85, CY]);
+  pts.push([CX - R*1.15, CY + R*0.15]);
+  pts.push([CX - R, CY]);
+  return pts;
+}
+
+function gen_flower(){
+  const pts = [];
+  // 6 petals as a rose curve — true single line
+  const N = 600;
+  for (let i=0; i<=N; i++){
+    const t = i/N * Math.PI*2;
+    const r = R * 0.85 * Math.cos(3*t);
+    pts.push([CX + Math.cos(t)*r, CY + Math.sin(t)*r]);
+  }
+  // stem down
+  pts.push([CX, CY]);
+  pts.push([CX, CY + R*1.1]);
+  return pts;
+}
+
+function gen_gear(){
+  const pts = [];
+  const teeth = 12;
+  const N = teeth * 4;
+  for (let i=0; i<=N; i++){
+    const t = (i/N) * Math.PI*2;
+    // alternate inner/outer radius — square teeth
+    const phase = (i % 4);
+    const r = (phase === 0 || phase === 1) ? R : R*0.78;
+    pts.push([CX + Math.cos(t)*r, CY + Math.sin(t)*r]);
+  }
+  // travel to center, draw inner hole, travel back
+  pts.push([CX, CY]);
+  pts.push([CX + R*0.25, CY]);
+  for (let i=0; i<=60; i++){
+    const t = i/60 * Math.PI*2;
+    pts.push([CX + Math.cos(t)*R*0.25, CY + Math.sin(t)*R*0.25]);
+  }
+  return pts;
+}
+
+function gen_lightning(){
+  const pts = [];
+  pts.push([CX - R*0.2, CY - R]);
+  pts.push([CX - R*0.5, CY - R*0.1]);
+  pts.push([CX - R*0.05, CY - R*0.2]);
+  pts.push([CX - R*0.4, CY + R*0.5]);
+  pts.push([CX + R*0.1, CY + R]);
+  pts.push([CX + R*0.4, CY + R*0.05]);
+  pts.push([CX - R*0.05, CY + R*0.1]);
+  pts.push([CX + R*0.3, CY - R*0.7]);
+  pts.push([CX - R*0.05, CY - R*0.6]);
+  pts.push([CX - R*0.2, CY - R]);
+  return pts;
+}
+
+function gen_sun(){
+  const pts = [];
+  // 12 rays in/out + body
+  const rays = 12;
+  for (let i=0; i<=rays*2; i++){
+    const t = (i/(rays*2)) * Math.PI*2;
+    const r = (i % 2 === 0) ? R : R*0.55;
+    pts.push([CX + Math.cos(t)*r, CY + Math.sin(t)*r]);
+  }
+  // travel to the body circle
+  pts.push([CX + R*0.55, CY]);
+  for (let i=0; i<=80; i++){
+    const t = i/80 * Math.PI*2;
+    pts.push([CX + Math.cos(t)*R*0.55, CY + Math.sin(t)*R*0.55]);
+  }
+  return pts;
+}
+
+function gen_moon(){
+  const pts = [];
+  // crescent — outer arc + inner arc, single continuous loop
+  const N = 100;
+  for (let i=0; i<=N; i++){
+    const t = -Math.PI/2 + (i/N) * Math.PI;
+    pts.push([CX + Math.cos(t)*R, CY + Math.sin(t)*R]);
+  }
+  for (let i=N; i>=0; i--){
+    const t = -Math.PI/2 + (i/N) * Math.PI;
+    pts.push([CX + Math.cos(t)*R*0.55 - R*0.15, CY + Math.sin(t)*R*0.95]);
+  }
+  return pts;
+}
+
+function gen_boat(){
+  const pts = [];
+  // hull
+  pts.push([CX - R, CY + R*0.2]);
+  pts.push([CX - R*0.7, CY + R*0.7]);
+  pts.push([CX + R*0.7, CY + R*0.7]);
+  pts.push([CX + R, CY + R*0.2]);
+  pts.push([CX - R, CY + R*0.2]);
+  // mast up
+  pts.push([CX, CY + R*0.2]);
+  pts.push([CX, CY - R*0.9]);
+  // sail down to deck
+  pts.push([CX + R*0.6, CY + R*0.2]);
+  pts.push([CX, CY + R*0.2]);
+  return pts;
+}
+
+function gen_cube(){
+  const pts = [];
+  const s = R*0.6;
+  // front face
+  pts.push([CX - s, CY - s]);
+  pts.push([CX + s, CY - s]);
+  pts.push([CX + s, CY + s]);
+  pts.push([CX - s, CY + s]);
+  pts.push([CX - s, CY - s]);
+  // travel to back-top-left
+  pts.push([CX - s + R*0.3, CY - s - R*0.3]);
+  pts.push([CX + s + R*0.3, CY - s - R*0.3]);
+  pts.push([CX + s + R*0.3, CY + s - R*0.3]);
+  pts.push([CX + s, CY + s]);
+  // up the back to close the cube
+  pts.push([CX + s, CY - s]);
+  pts.push([CX + s + R*0.3, CY - s - R*0.3]);
+  pts.push([CX - s + R*0.3, CY - s - R*0.3]);
+  pts.push([CX - s, CY - s]);
+  return pts;
+}
+
+function gen_web(){
+  const pts = [];
+  const arms = 8;
+  // start at center, draw out each arm and back
+  for (let a=0; a<arms; a++){
+    const ang = (a/arms) * Math.PI*2;
+    pts.push([CX, CY]);
+    pts.push([CX + Math.cos(ang)*R, CY + Math.sin(ang)*R]);
+  }
+  pts.push([CX, CY]);
+  // spiral outward connecting arms
+  const turns = 5, segPer = 80;
+  for (let i=0; i<=turns*segPer; i++){
+    const t = i/segPer;
+    const r = R * (t/turns) * 0.95;
+    const ang = t * Math.PI*2;
+    pts.push([CX + Math.cos(ang)*r, CY + Math.sin(ang)*r]);
+  }
+  return pts;
+}
+
+/* Fallback: deterministic squiggle from word bytes.
+   The word's character codes seed a pseudo-random walk that ALWAYS
+   produces the same shape for the same word. */
+function gen_squiggle(word){
+  const pts = [];
+  // hash word to a stable PRNG seed
+  let seed = 1;
+  for (let i=0; i<word.length; i++){
+    seed = ((seed * 31) + word.charCodeAt(i)) | 0;
+  }
+  // small mulberry32 PRNG
+  let s = (seed >>> 0) || 1;
+  function rand(){
+    s |= 0; s = (s + 0x6D2B79F5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  // continuous Lissajous-like path with word-derived frequencies
+  const fx = 1 + Math.floor(rand()*5);
+  const fy = 1 + Math.floor(rand()*5);
+  const phase = rand() * Math.PI * 2;
+  const skew = rand() * 0.4;
+  const N = 600;
+  for (let i=0; i<=N; i++){
+    const t = i/N * Math.PI*2;
+    const x = CX + Math.sin(t*fx + phase) * R * (0.85 + skew*Math.sin(t*3));
+    const y = CY + Math.cos(t*fy) * R * (0.85 - skew*Math.cos(t*2));
+    pts.push([x, y]);
+  }
+  return pts;
+}
+
+const GRAMMAR = {
+  house: gen_house, home: gen_house,
+  fish: gen_fish,
+  tree: gen_tree,
+  star: gen_star,
+  heart: gen_heart, love: gen_heart,
+  spiral: gen_spiral, swirl: gen_spiral,
+  wave: gen_wave, waves: gen_wave, sine: gen_wave,
+  mountain: gen_mountain, mountains: gen_mountain, peak: gen_mountain,
+  infinity: gen_infinity, infinite: gen_infinity, eight: gen_infinity,
+  key: gen_key,
+  eye: gen_eye,
+  arrow: gen_arrow,
+  flower: gen_flower, rose: gen_flower, petal: gen_flower,
+  gear: gen_gear, cog: gen_gear,
+  lightning: gen_lightning, bolt: gen_lightning,
+  sun: gen_sun,
+  moon: gen_moon, crescent: gen_moon,
+  boat: gen_boat, sailboat: gen_boat, ship: gen_boat,
+  cube: gen_cube, box: gen_cube,
+  web: gen_web, spider: gen_web,
+};
+
+function interpret(idea){
+  const word = idea.toLowerCase().trim().split(/\s+/)[0];
+  if (!word) return null;
+  if (GRAMMAR[word]) return { kind: word, pts: GRAMMAR[word]() };
+  return { kind: 'squiggle', pts: gen_squiggle(word), source: word };
+}
+
+/* ─── animated drawer ────────────────────────────────────────────────
+   Walk the points, drawing two passes per segment:
+     1. Purple halo (wider, rounded ends)
+     2. Bone-white centerline (narrower, on top)
+   Animation paces ~80 segments/sec; a long path takes a few seconds.
+   ─────────────────────────────────────────────────────────────────── */
+
+let drawState = null;
+
+function startDraw(result){
+  clearVoid();
+  drawState = {
+    pts: result.pts,
+    i: 0,
+    perFrame: Math.max(1, Math.ceil(result.pts.length / 240)),  // finish in ~4s @ 60fps
+    total: result.pts.length,
+    kind: result.kind,
+  };
+  document.getElementById('pulse').classList.remove('off');
+  setStatus(`drawing · ${result.kind}${result.source ? ' (' + result.source + ')' : ''} · 0 / ${result.pts.length}`);
+  requestAnimationFrame(tick);
+}
+
+function drawSegment(p0, p1){
+  // Pass 1 — purple halo (outer, soft)
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = PURPLE_RIM;
+  ctx.lineWidth = STROKE_OUTER;
+  ctx.globalAlpha = 0.55;
+  ctx.beginPath();
+  ctx.moveTo(p0[0], p0[1]);
+  ctx.lineTo(p1[0], p1[1]);
+  ctx.stroke();
+
+  // Pass 2 — purple core (mid)
+  ctx.strokeStyle = PURPLE_CORE;
+  ctx.lineWidth = STROKE_OUTER * 0.55;
+  ctx.globalAlpha = 1.0;
+  ctx.beginPath();
+  ctx.moveTo(p0[0], p0[1]);
+  ctx.lineTo(p1[0], p1[1]);
+  ctx.stroke();
+
+  // Pass 3 — bone centerline (inner, sharp)
+  ctx.strokeStyle = BONE;
+  ctx.lineWidth = STROKE_INNER;
+  ctx.beginPath();
+  ctx.moveTo(p0[0], p0[1]);
+  ctx.lineTo(p1[0], p1[1]);
+  ctx.stroke();
+}
+
+function tick(){
+  if (!drawState) return;
+  const ds = drawState;
+  const end = Math.min(ds.total, ds.i + ds.perFrame);
+  while (ds.i < end - 1){
+    drawSegment(ds.pts[ds.i], ds.pts[ds.i + 1]);
+    ds.i++;
+  }
+  // start point — draw a single tiny dot so the head of the line exists
+  if (end >= 1 && ds.i === end - 1){
+    drawSegment(ds.pts[ds.i], ds.pts[ds.i + 1] || ds.pts[ds.i]);
+    ds.i++;
+  }
+  setStatus(`drawing · ${ds.kind} · ${ds.i} / ${ds.total}`);
+  if (ds.i >= ds.total - 1){
+    document.getElementById('pulse').classList.add('off');
+    setStatus(`done · ${ds.kind} · ${ds.total} segments · single unbroken line`);
+    drawState = null;
+    return;
+  }
+  requestAnimationFrame(tick);
+}
+
+function setStatus(msg){
+  document.getElementById('statusTxt').textContent = msg;
+}
+
+/* ─── UI ─────────────────────────────────────────────────────────── */
+const idea = document.getElementById('idea');
+const go = document.getElementById('go');
+
+function fire(){
+  const txt = idea.value.trim();
+  if (!txt){
+    setStatus('type something first');
+    return;
+  }
+  const result = interpret(txt);
+  if (!result){
+    setStatus('nothing to draw');
+    return;
+  }
+  startDraw(result);
+}
+
+go.addEventListener('click', fire);
+idea.addEventListener('keydown', e=>{
+  if (e.key === 'Enter'){ e.preventDefault(); fire(); }
+});
+
+// boot — draw a star so the canvas isn't empty on load
+clearVoid();
+idea.value = 'star';
+fire();
+idea.value = '';
+idea.focus();
+</script>
+</body>
+</html>

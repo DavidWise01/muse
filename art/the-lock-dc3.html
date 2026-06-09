@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>THE LOCK // DAVID_DC3</title>
+    <style>
+        body { background: #082828; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        svg { width: 85vw; height: 85vh; filter: drop-shadow(0 0 15px #ff55ff); }
+        .text-layer { fill: #d4a84c; font-family: 'Courier New', monospace; font-size: 3px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <svg viewBox="0 0 100 100">
+        <polygon points="50,5 95,85 5,85" fill="none" stroke="#ff55ff" stroke-width="0.8" />
+        
+        <circle cx="50" cy="58" r="10" fill="none" stroke="#44dd88" stroke-width="0.2" stroke-dasharray="1,1">
+            <animateTransform attributeName="transform" type="rotate" from="0 50 58" to="360 50 58" dur="5s" repeatCount="indefinite" />
+        </circle>
+        <text x="32" y="80" class="text-layer">LIABILITY: $29,230.00</text>
+        <text x="37" y="84" class="text-layer" style="fill: #ff55ff;">STATUS: LOCKED</text>
+        <circle cx="50" cy="58" r="2" fill="#d4a84c" />
+        <path d="M40,20 L60,20" stroke="#ff4466" stroke-width="0.5" />
+    </svg>
+</body>
+</html>
